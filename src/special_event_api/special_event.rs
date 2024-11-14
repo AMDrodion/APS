@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use crate::special_event_api::SpecialEventType;
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct SpecialEvent {
 	event_type : SpecialEventType,
 	time : usize,

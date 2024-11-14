@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
-#[derive(Copy, Clone, Eq)]
+#[derive(Copy, Clone, Eq, Debug)]
 pub enum SpecialEventType {
 	DeviceRelease(usize),
 	NewRequest(usize),
