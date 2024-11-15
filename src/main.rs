@@ -4,14 +4,15 @@ mod special_event_api;
 mod buffer;
 
 use buffer::Buffer;
-use special_event_api::{SpecialEvent, SpecialEventType, SECalendar};
+use special_event_api::{SpecialEventType, SECalendar};
+use request::Request;
 
 fn main() {
     println!("Hello, world!");
-    let a1 : SpecialEvent = SpecialEvent::new(SpecialEventType::NewRequest(0), 0, true);
-    let a2 : SpecialEvent = SpecialEvent::new(SpecialEventType::NewRequest(6), 40, true);
-    let a3 : SpecialEvent = SpecialEvent::new(SpecialEventType::NewRequest(4), 40, true);
-    let a4 : SpecialEvent = SpecialEvent::new(SpecialEventType::NewRequest(3), 40, true);
+    let a1 : Request = Request::new(0, 0);
+    let a2 : Request = Request::new(6, 40);
+    let a3 : Request = Request::new(4, 40);
+    let a4 : Request = Request::new(3, 40);
     let mut b : Buffer = Buffer::new(3);
     b.push(a1);
     b.push(a2);

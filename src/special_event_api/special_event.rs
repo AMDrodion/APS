@@ -2,13 +2,13 @@ use std::cmp::Ordering;
 use crate::special_event_api::SpecialEventType;
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
-pub struct SpecialEvent {
+pub struct Request {
 	event_type : SpecialEventType,
 	time : usize,
 	mark : bool
 }
 
-impl SpecialEvent {
+impl Request {
 	pub fn new(event_type: SpecialEventType, time: usize, mark: bool) -> Self {
 		Self { event_type, time, mark }
 	}
@@ -26,7 +26,7 @@ impl SpecialEvent {
 	}
 }
 
-impl PartialOrd for SpecialEvent {
+impl PartialOrd for Request {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		let cmp = other.time().partial_cmp(&self.time());
 		cmp.and_then(|ordering| {
@@ -39,7 +39,7 @@ impl PartialOrd for SpecialEvent {
 	}
 }
 
-impl Ord for SpecialEvent {
+impl Ord for Request {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.partial_cmp(other).unwrap_or(Ordering::Equal)
 	}

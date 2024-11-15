@@ -13,6 +13,6 @@ impl Source {
 	
 	pub fn generate_request(&mut self) -> Request {
 		self.request_counter += 1;
-		Request::new(self.num, self.request_counter, self.request_delay * self.request_counter)
+		Request::new(self.num, self.request_delay * self.request_counter)
 	}
 }
