@@ -3,10 +3,10 @@ mod special_event;
 
 use std::collections::BinaryHeap;
 pub use special_event_type::SpecialEventType;
-pub use special_event::Request;
+pub use special_event::Event;
 
 pub struct SECalendar {
-	heap : BinaryHeap<Request>
+	heap : BinaryHeap<Event>
 }
 
 impl SECalendar {
@@ -14,11 +14,11 @@ impl SECalendar {
 		Self { heap : BinaryHeap::new() }
 	}
 
-	pub fn add_event(&mut self, se : Request) {
+	pub fn add_event(&mut self, se : Event) {
 		self.heap.push(se)
 	}
 
-	pub fn get_event(&mut self) -> Request {
+	pub fn get_event(&mut self) -> Event {
 		self.heap.pop().expect("Календарь событий пуст\n")
 	}
 }

@@ -34,10 +34,10 @@ impl Buffer {
 		for request in self.deck.iter().rev() {
 			if request.source_num() == self.current_priority_of_source {
 				max_request = *request;
-				self.deck.remove(request);
 				break
 			}
 		}
+		self.deck.remove(&max_request);
 		if temp_priority == max_request.source_num() {
 			self.current_priority_of_source = temp_priority
 		}
