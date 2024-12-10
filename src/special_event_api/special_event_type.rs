@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Equal, Greater, Less};
+use std::fmt::{Display, Formatter};
 
 #[derive(Copy, Clone, Eq, Debug)]
 pub enum SpecialEventType {
@@ -35,10 +36,20 @@ impl PartialOrd for SpecialEventType {
 impl PartialEq for SpecialEventType {
 	fn eq(&self, other: &Self) -> bool {
 		match (self, other) {
-			(SpecialEventType::DeviceRelease(n1), SpecialEventType::DeviceRelease(n2)) => n1 == n2,
-			(SpecialEventType::NewRequest(n1), SpecialEventType::NewRequest(n2)) => n1 == n2,
+			(SpecialEventType::DeviceRelease(n1), SpecialEventType::DeviceRelease(n2)) => *n1 == *n2,
+			(SpecialEventType::NewRequest(n1), SpecialEventType::NewRequest(n2)) => *n1 == *n2,
 			(SpecialEventType::SimulationEnd, SpecialEventType::SimulationEnd) => true,
 			_ => false
+		}
+	}
+}
+
+impl Display for SpecialEventType {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			SpecialEventType::NewRequest(n) => write!(f, "Источник_{}", n),
+			SpecialEventType::DeviceRelease(n) => write!(f, "Прибор_{}", n),
+			SpecialEventType::SimulationEnd => write!(f, "Конец")
 		}
 	}
 }

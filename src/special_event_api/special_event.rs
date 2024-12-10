@@ -1,15 +1,15 @@
 use std::cmp::Ordering;
 use crate::special_event_api::SpecialEventType;
 
-#[derive(Eq, PartialEq, Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Event {
 	event_type : SpecialEventType,
-	time : usize,
+	time : f64,
 	mark : bool
 }
 
 impl Event {
-	pub fn new(event_type: SpecialEventType, time: usize, mark: bool) -> Self {
+	pub fn new(event_type: SpecialEventType, time: f64, mark: bool) -> Self {
 		Self { event_type, time, mark }
 	}
 
@@ -17,7 +17,7 @@ impl Event {
 		self.event_type
 	}
 
-	pub fn time(&self) -> usize {
+	pub fn time(&self) -> f64 {
 		self.time
 	}
 
@@ -25,6 +25,15 @@ impl Event {
 		self.mark
 	}
 }
+
+impl PartialEq for Event {
+	fn eq(&self, other: &Self) -> bool {
+		(self.time * 1_000_000_f64).round() == (other.time * 1_000_000_f64).round()
+				&& self.event_type == other.event_type
+	}
+}
+
+impl Eq for Event {}
 
 impl PartialOrd for Event {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
