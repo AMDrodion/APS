@@ -1,0 +1,5 @@
+sources = [4.1, 8.1, 5.1, 5.2, 2.7, 9.1, 4.3, 3.1, 7.5, 5, 8.2, 7.6]
+num_devices = 11
+buffer_size = 4
+processing_time = 4.5
+simulation_time = 1000
