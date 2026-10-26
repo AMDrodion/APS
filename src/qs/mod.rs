@@ -2,7 +2,6 @@ mod uml_events;
 mod statistic;
 
 use std::{fs, io};
-use rand::Rng;
 use rand_distr::{Distribution, Exp};
 use crate::buffer::Buffer;
 use crate::device_api::DeviceDeck;
@@ -49,13 +48,12 @@ impl QueuingSystem {
 					|s| calendar.add_event(
 							Event::new
 									(SpecialEventType::NewRequest(s.0),
-									 s.1.request_delay(),
-									 false
+									 s.1.request_delay()
 									)
 					)
 				);
 		calendar
-				.add_event(Event::new(SpecialEventType::SimulationEnd, config.simulation_time(), false));
+				.add_event(Event::new(SpecialEventType::SimulationEnd, config.simulation_time()));
 		Self { buffer, device_deck, sources, calendar,
 			processing_time: config.processing_time(),
 			statistic: Statistic::new(config.sources().len(), config.num_devices()),
@@ -203,9 +201,10 @@ impl QueuingSystem {
 			self.statistic.device_stat(device_result.0).0 += 1;
 		}
 		self.write_event_to_uml(UMLEvents::Source(event.time(), num_of_source));
-		self.calendar.add_event(Event::new(SpecialEventType::NewRequest(num_of_source),
-		                                   event.time() + self.sources[num_of_source].request_delay(),
-		                                   false))
+		self.calendar.add_event(Event::new(
+			SpecialEventType::NewRequest(num_of_source),
+			event.time() + self.sources[num_of_source].request_delay()
+		))
 	}
 
 	fn release_devise(&mut self, num_to_release: usize, event: &Event) {
@@ -229,8 +228,7 @@ impl QueuingSystem {
 		
 		self.calendar.add_event(Event::new(
 			SpecialEventType::DeviceRelease(num),
-			event.time() + exp_distribution.sample(&mut rng),
-			false)
+			event.time() + exp_distribution.sample(&mut rng))
 		)
 	}
 

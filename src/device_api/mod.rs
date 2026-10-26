@@ -12,8 +12,8 @@ pub struct DeviceDeck {
 impl DeviceDeck {
 	pub fn new(size : usize) -> Self {
 		let mut deck = Vec::with_capacity(size);
-		for i in 0..size {
-			deck.push(Device::new(i));
+		for _ in 0..size {
+			deck.push(Device::new());
 		}
 		Self { deck, current_index : 0 }
 	}

@@ -20,8 +20,4 @@ impl Source {
 	pub fn request_delay(&self) -> f64 {
 		self.request_delay
 	}
-
-	pub fn request_counter(&self) -> usize {
-		self.request_counter
-	}
 }

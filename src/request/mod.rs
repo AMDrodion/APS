@@ -15,10 +15,6 @@ impl Request {
 	pub fn source_num(&self) -> usize {
 		self.source_num
 	}
-
-	pub fn time(&self) -> f64 {
-		self.time
-	}
 }
 
 impl Debug for Request {

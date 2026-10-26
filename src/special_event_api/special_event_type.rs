@@ -18,9 +18,9 @@ impl Ord for SpecialEventType {
 impl PartialOrd for SpecialEventType {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		match (self, other) {
+			(SpecialEventType::SimulationEnd, SpecialEventType::SimulationEnd) => Some(Equal),
 			(_, SpecialEventType::SimulationEnd) => Some(Greater),
 			(SpecialEventType::SimulationEnd, _) => Some(Less),
-			(SpecialEventType::SimulationEnd, SpecialEventType::SimulationEnd) => Some(Equal),
 			(SpecialEventType::DeviceRelease(n1), SpecialEventType::DeviceRelease(n2)) => {
 				n2.partial_cmp(&n1)
 			}

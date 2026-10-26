@@ -4,13 +4,12 @@ use crate::special_event_api::SpecialEventType;
 #[derive(Copy, Clone, Debug)]
 pub struct Event {
 	event_type : SpecialEventType,
-	time : f64,
-	mark : bool
+	time : f64
 }
 
 impl Event {
-	pub fn new(event_type: SpecialEventType, time: f64, mark: bool) -> Self {
-		Self { event_type, time, mark }
+	pub fn new(event_type: SpecialEventType, time: f64) -> Self {
+		Self { event_type, time}
 	}
 
 	pub fn event_type(&self) -> SpecialEventType {
@@ -19,10 +18,6 @@ impl Event {
 
 	pub fn time(&self) -> f64 {
 		self.time
-	}
-
-	pub fn mark(&self) -> bool {
-		self.mark
 	}
 }
 
