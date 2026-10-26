@@ -26,7 +26,7 @@ impl Buffer {
 	pub fn push(&mut self, request: Request) -> Option<Request> {
 		let mut deleted_request: Option<Request> = None;
 		if self.is_full() {
-			let less_request = self.deck.first().unwrap().clone();
+			let less_request = *self.deck.first().unwrap();
 			self.deck.remove(&less_request);
 			deleted_request = Some(less_request);
 		}
@@ -35,7 +35,7 @@ impl Buffer {
 	}
 
 	pub fn get_request(&mut self) -> Option<Request> {
-		if let Some(mut max_request) = self.deck.last().map(|r| *r) {
+		if let Some(mut max_request) = self.deck.last().copied() {
 			let temp_priority = max_request.source_num();
 			for request in self.deck.iter().rev() {
 				if request.source_num() == self.current_priority_of_source {

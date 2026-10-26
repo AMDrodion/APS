@@ -37,7 +37,7 @@ impl QueuingSystem {
 		let device_deck = DeviceDeck::new(config.num_devices());
 		let sources = config
 				.sources()
-				.into_iter()
+				.iter()
 				.enumerate()
 				.map(|s| Source::new(s.0, *s.1))
 				.collect::<Vec<Source>>();
@@ -105,7 +105,7 @@ impl QueuingSystem {
 	}
 
 	fn print_calendar(&self) {
-		println!("{:10}|{:8}|{}", "Тип", "Время", "Признак");
+		println!("{:10}|{:8}|Признак", "Тип", "Время");
 		self.calendar.iter().rev().for_each(|event| {
 			println!("{:10}|{:8.4}|0", event.event_type().to_string(), event.time())
 		});
@@ -179,10 +179,7 @@ impl QueuingSystem {
 			let mut input = String::new();
 			io::stdin().read_line(&mut input).expect("Не удалось прочитать строку");
 			let command = input.trim();
-			match command {
-				"end" => {*debug_mode = false}
-				_ => {}
-			}
+			if command == "end" {*debug_mode = false}
 		}
 	}
 
@@ -190,7 +187,7 @@ impl QueuingSystem {
 		self.statistic.source_stat(num_of_source).0 += 1;
 		let device_result = self.device_deck
 				.process_request(self.sources[num_of_source].generate_request());
-		if let Some(req) = device_result.clone().1 {
+		if let Some(req) = device_result.1 {
 			self.buffer.push(req).and_then(
 				|req| {
 					self.statistic.source_stat(req.source_num()).1 += 1;

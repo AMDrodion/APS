@@ -22,7 +22,7 @@ impl PartialOrd for SpecialEventType {
 			(_, SpecialEventType::SimulationEnd) => Some(Greater),
 			(SpecialEventType::SimulationEnd, _) => Some(Less),
 			(SpecialEventType::DeviceRelease(n1), SpecialEventType::DeviceRelease(n2)) => {
-				n2.partial_cmp(&n1)
+				n2.partial_cmp(n1)
 			}
 			(SpecialEventType::DeviceRelease(_), _) => Some(Greater),
 			(_, SpecialEventType::DeviceRelease(_)) => Some(Less),
