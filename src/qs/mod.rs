@@ -2,8 +2,6 @@ mod uml_events;
 mod statistic;
 
 use std::{fs, io};
-use std::fs::OpenOptions;
-use std::io::Write;
 use rand::Rng;
 use rand_distr::{Distribution, Exp};
 use crate::buffer::Buffer;
@@ -22,8 +20,15 @@ pub struct QueuingSystem {
 	sources : Vec<Source>,
 	calendar : SECalendar,
 	processing_time: f64,
-	statistic: Statistic
+	statistic: Statistic,
+	uml: String,
+	uml_device_states: Vec<bool>,
+	uml_last_time: f64
 }
+
+const UML_FILE_PATH: &str = "diagram.puml";
+
+const UML_DEVICE_GAP: f64 = 0.001;
 
 impl QueuingSystem {
 	pub fn new() -> Self {
@@ -53,7 +58,10 @@ impl QueuingSystem {
 				.add_event(Event::new(SpecialEventType::SimulationEnd, config.simulation_time(), false));
 		Self { buffer, device_deck, sources, calendar,
 			processing_time: config.processing_time(),
-			statistic: Statistic::new(config.sources().len(), config.num_devices()) }
+			statistic: Statistic::new(config.sources().len(), config.num_devices()),
+			uml: String::new(),
+			uml_device_states: vec![false; config.num_devices()],
+			uml_last_time: 0.0 }
 	}
 
 	pub fn simulate(&mut self) {
@@ -63,7 +71,9 @@ impl QueuingSystem {
 		let mut num_of_new_requests = 0;
 		let mut prev_event_time = 0f64;
 		while !self.calendar.is_empty() {
-			self.print_calendar();
+			if debug_mode {
+				self.print_calendar();
+			}
 			let event = self.calendar.get_event();
 			self.update_statistic(event.time() - prev_event_time);
 			prev_event_time = event.time();
@@ -79,8 +89,9 @@ impl QueuingSystem {
 					}
 				_ => break
 			}
-			//self.update_uml(&event, num_of_new_requests, &mut prev_buff_len);
+			self.update_uml(&event, num_of_new_requests, &mut prev_buff_len);
 		}
+		self.save_uml();
 		self.print_results(prev_event_time);
 	}
 
@@ -191,7 +202,7 @@ impl QueuingSystem {
 			self.add_device_release_to_calendar(device_result.0, event);
 			self.statistic.device_stat(device_result.0).0 += 1;
 		}
-		//self.write_event_to_uml(UMLEvents::Source(event.time(), num_of_source));
+		self.write_event_to_uml(UMLEvents::Source(event.time(), num_of_source));
 		self.calendar.add_event(Event::new(SpecialEventType::NewRequest(num_of_source),
 		                                   event.time() + self.sources[num_of_source].request_delay(),
 		                                   false))
@@ -210,7 +221,12 @@ impl QueuingSystem {
 		let lambda = 1.0 / self.processing_time;
 		let exp_distribution = Exp::new(lambda).unwrap();
 		let mut rng = rand::thread_rng();
-		//self.write_event_to_uml(UMLEvents::Device(event.time() - event.time() * 0.00001, num, false));
+		
+		if self.uml_device_states[num] {
+			self.write_event_to_uml(UMLEvents::Device(event.time() - UML_DEVICE_GAP, num, false));
+			self.uml_device_states[num] = false;
+		}
+		
 		self.calendar.add_event(Event::new(
 			SpecialEventType::DeviceRelease(num),
 			event.time() + exp_distribution.sample(&mut rng),
@@ -218,91 +234,82 @@ impl QueuingSystem {
 		)
 	}
 
-	fn initialize_uml(&self) {
-		let file_path = "diagram.puml";
-
-		fs::write(file_path, "@startuml\n@enduml\n").unwrap();
-
-		let mut content = fs::read_to_string(file_path).unwrap();
+	fn initialize_uml(&mut self) {
+		self.uml.clear();
+		self.uml_device_states.fill(false);
+		self.uml_last_time = 0.0;
+		self.uml.push_str("@startuml\n");
 
 		for i in 0..self.sources.len() {
-			content.insert_str
-			(
-				content.find("@enduml").unwrap(),
-				format!("robust \"Источник{}\" as Src{}\n", i, i).as_str()
-			)
+			self.uml.push_str(&format!("robust \"Источник{}\" as Src{}\n", i, i));
 		}
 
-		content.insert_str(content.find("@enduml").unwrap(), "robust \"Буффер\" as Buff\n");
+		self.uml.push_str("robust \"Буффер\" as Buff\n");
 
 		for i in 0..self.device_deck.len() {
-			content.insert_str
-			(
-				content.find("@enduml").unwrap(),
-				format!("robust \"Прибор{}\" as Dev{}\n", i, i).as_str()
-			)
+			self.uml.push_str(&format!("robust \"Прибор{}\" as Dev{}\n", i, i));
 		}
 
-		content.insert_str(content.find("@enduml").unwrap(), "@0\n");
+		self.uml.push_str("@0\n");
 
 		for i in 0..self.sources.len() {
-			content.insert_str(content.find("@enduml").unwrap(), format!("Src{} is false\n", i).as_str());
+			self.uml.push_str(&format!("Src{} is false\n", i));
 		}
 
 		for i in 0..self.device_deck.len() {
-			content.insert_str(content.find("@enduml").unwrap(), format!("Dev{} is false\n", i).as_str());
+			self.uml.push_str(&format!("Dev{} is false\n", i));
 		}
 
-		content.insert_str(content.find("@enduml").unwrap(),"Buff is 0\n");
-
-		let mut file = OpenOptions::new()
-				.write(true)
-				.truncate(true)
-				.open(file_path).unwrap();
-
-		file.write_all(content.as_bytes()).unwrap();
+		self.uml.push_str("Buff is 0\n");
+	}
+	
+	fn write_uml_time(&mut self, time: f64) {
+		let time = time.max(self.uml_last_time);
+		self.uml_last_time = time;
+		self.uml.push_str(&format!("@{}\n", time));
 	}
 
-	fn write_event_to_uml(&self, event: UMLEvents) {
-		let file_path = "diagram.puml";
-
-		let mut content = fs::read_to_string(file_path).unwrap();
-
+	fn write_event_to_uml(&mut self, event: UMLEvents) {
 		match event {
 			UMLEvents::Source(time, num) => {
-				content.insert_str(content.find("@enduml").unwrap(), format!("@{}\n", time).as_str());
-				content.insert_str(content.find("@enduml").unwrap(), format!("Src{} is {}\n", num, true).as_str());
-				content.insert_str(content.find("@enduml").unwrap(), format!("@{}\n", time + 0.000000001).as_str());
-				content.insert_str(content.find("@enduml").unwrap(), format!("Src{} is {}\n", num, false).as_str());
+				self.write_uml_time(time);
+				self.uml.push_str(&format!("Src{} is {}\n", num, true));
+				self.write_uml_time(time + 0.000000001);
+				self.uml.push_str(&format!("Src{} is {}\n", num, false));
 			}
 			UMLEvents::Device(time, num, status) => {
-				content.insert_str(content.find("@enduml").unwrap(), format!("@{}\n", time).as_str());
-				content.insert_str(content.find("@enduml").unwrap(), format!("Dev{} is {}\n", num, status).as_str());
+				self.write_uml_time(time);
+				self.uml.push_str(&format!("Dev{} is {}\n", num, status));
 			}
 			UMLEvents::Buffer(time, status) => {
-				content.insert_str(content.find("@enduml").unwrap(), format!("@{}\n", time).as_str());
-				content.insert_str(content.find("@enduml").unwrap(), format!("Buff is {}\n", status).as_str());
+				self.write_uml_time(time);
+				self.uml.push_str(&format!("Buff is {}\n", status));
 			}
 		}
-
-		let mut file = OpenOptions::new()
-				.write(true)
-				.truncate(true)
-				.open(file_path).unwrap();
-
-		file.write_all(content.as_bytes()).unwrap();
 	}
 
-	fn update_uml(&self, event: &Event, num_of_new_requests: usize, prev_buff_len: &mut usize) {
-		for device in self.device_deck.iter() {
-			self.write_event_to_uml(UMLEvents::Device(event.time() + 0.000000001 * num_of_new_requests as f64,
-			                                          device.num(),
-			                                          !device.is_free()))
+	fn update_uml(&mut self, event: &Event, num_of_new_requests: usize, prev_buff_len: &mut usize) {
+		let device_states = self.device_deck
+				.iter()
+				.map(|device| !device.is_free())
+				.collect::<Vec<bool>>();
+		for (num, is_busy) in device_states.into_iter().enumerate() {
+			if is_busy != self.uml_device_states[num] {
+				self.write_event_to_uml(UMLEvents::Device(event.time() + 0.000000001 * num_of_new_requests as f64,
+				                                          num,
+				                                          is_busy));
+				self.uml_device_states[num] = is_busy;
+			}
 		}
 		let buff_len = self.buffer.len();
 		if buff_len != *prev_buff_len {
 			self.write_event_to_uml(UMLEvents::Buffer(event.time() + 0.0000001 * num_of_new_requests as f64, buff_len));
 			*prev_buff_len = buff_len;
 		}
+	}
+
+	fn save_uml(&mut self) {
+		self.uml.push_str("@enduml\n");
+		fs::write(UML_FILE_PATH, &self.uml).unwrap();
 	}
 }
