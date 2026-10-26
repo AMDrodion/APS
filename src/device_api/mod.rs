@@ -1,6 +1,5 @@
 mod device;
 
-use std::path::Iter;
 pub use device::Device;
 use crate::request::Request;
 
