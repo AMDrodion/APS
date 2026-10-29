@@ -29,6 +29,8 @@ const UML_FILE_PATH: &str = "diagram.puml";
 
 const UML_DEVICE_GAP: f64 = 0.001;
 
+const UML_MIN_STEP: f64 = 0.000000001;
+
 impl QueuingSystem {
 	pub fn new() -> Self {
 		let mut calendar = SECalendar::new();
@@ -259,7 +261,7 @@ impl QueuingSystem {
 	}
 	
 	fn write_uml_time(&mut self, time: f64) {
-		let time = time.max(self.uml_last_time);
+		let time = time.max(self.uml_last_time + UML_MIN_STEP);
 		self.uml_last_time = time;
 		self.uml.push_str(&format!("@{}\n", time));
 	}
